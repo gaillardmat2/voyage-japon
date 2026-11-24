@@ -781,3 +781,294 @@ export const DECOR = {
     { geo: new THREE.BoxGeometry(5.6, 18, 0.1), color: 0xfff3b0, y: 11, dz: 3.02, o: { emissive: 0xffd166, emissiveIntensity: 0.25, transparent: true, opacity: 0.5 } },
   ], l),
 };
+
+// ───────── Monuments supplémentaires (lieux des époques)
+const RED = 0xc0392b;
+function hall(w, d, h, wall = WHITE, pillar = VERM, roofC = ROOF, roofH = 2.6) {
+  const g = new THREE.Group();
+  g.add(P(box(w + 1.5, 0.6, d + 1.5, STONE), 0, 0.3, 0));
+  for (const x of [-w / 2, w / 2]) for (const z of [-d / 2, d / 2]) g.add(P(cyl(0.22, 0.22, h, pillar, 8), x, 0.6 + h / 2, z));
+  g.add(P(box(w - 0.3, h * 0.8, d - 0.3, wall), 0, 0.6 + h * 0.45, 0));
+  g.add(P(roof(w + 3, d + 3, roofH, roofC), 0, 0.6 + h, 0));
+  return g;
+}
+Object.assign(BUILD, {
+  jomonTower() {
+    const g = new THREE.Group();
+    for (const [x, z] of [[-2.5, -4], [2.5, -4], [-2.5, 0], [2.5, 0], [-2.5, 4], [2.5, 4]]) g.add(P(cyl(0.55, 0.6, 15, 0x7f5539, 10), x, 7.5, z));
+    for (const y of [4.5, 9, 13.5]) { g.add(P(box(6.4, 0.35, 9.6, 0xa47148), 0, y, 0)); for (const x of [-3, 3]) g.add(P(box(0.12, 1, 9.6, 0x8d6e63), x, y + 0.6, 0)); }
+    g.add(P(R(box(0.6, 9, 0.2, 0x8d6e63), -0.5, 0, 0), 0, 4.2, 6.6));
+    return { g, r: 6 };
+  },
+  longHouse() {
+    const g = G(P(box(9, 0.8, 26, 0x8d6e63), 0, 0.4, 0));
+    const r = R(gable(10, 27, 6, 0xd9a95b), 0, 0, 0); P(r, 0, 0.8, 0); g.add(r);
+    g.add(P(box(1.6, 2, 0.4, 0x3e2723), 0, 1.6, 13.4));
+    return { g, r: 13 };
+  },
+  canoe() {
+    const g = G(P(S(sph(1, 0x6d4c41, 16, 8), 4.5, 0.55, 0.8), 0, 0.5, 0), P(S(sph(1, 0x3e2723, 16, 8), 4.1, 0.4, 0.6), 0, 0.75, 0));
+    g.add(P(R(cyl(0.06, 0.06, 3, 0x8d5a3b, 6), 0, 0, 1.2), 1.5, 1.2, 0.9));
+    return { g, r: 4.5 };
+  },
+  trapPit() {
+    const g = new THREE.Group();
+    for (let i = 0; i < 4; i++) { g.add(P(cyl(1.1, 0.8, 0.1, 0x3e2723, 12), -6 + i * 4, 0.05, 0)); g.add(P(R(cyl(0.05, 0.05, 2, 0x8d5a3b, 5), 0, 0, 0.3), -6 + i * 4, 0.8, 0)); }
+    g.add(BUILD.deer().g); return { g, r: 7, solid: false };
+  },
+  watchtower() {
+    const g = new THREE.Group();
+    for (const [x, z] of [[-1.8, -1.8], [1.8, -1.8], [-1.8, 1.8], [1.8, 1.8]]) g.add(P(cyl(0.22, 0.25, 9, 0x6d4c41, 8), x, 4.5, z));
+    g.add(P(box(4.6, 0.3, 4.6, 0xa47148), 0, 8, 0)); g.add(P(box(4.6, 1.2, 4.6, 0xb08055), 0, 8.8, 0));
+    g.add(P(roof(6, 6, 2.6, 0xd9a95b), 0, 9.4, 0));
+    for (let i = -8; i <= 8; i++) g.add(P(cyl(0.18, 0.2, 3, 0x8d5a3b, 6), i * 1.2, 1.5, 6));
+    g.add(P(box(20, 0.3, 2, 0x5d4037), 0, 0.05, 7.6));
+    return { g, r: 5 };
+  },
+  dotaku() {
+    const g = G(P(box(3, 0.6, 3, STONE), 0, 0.3, 0));
+    for (const x of [-1.3, 1.3]) g.add(P(cyl(0.12, 0.12, 4, 0x6d4c41, 6), x, 2.6, 0));
+    g.add(P(box(3, 0.2, 0.2, 0x6d4c41), 0, 4.5, 0));
+    const bell = G(P(cyl(0.45, 0.85, 2.4, 0x5f9e86, 16), 0, 0, 0), P(S(sph(0.45, 0x5f9e86), 1, 0.5, 0.6), 0, 1.2, 0));
+    P(bell, 0, 3.1, 0); g.add(bell);
+    return { g, r: 2.5, update: t => { bell.rotation.z = Math.sin(t * 1.6) * 0.08; } };
+  },
+  kiln() {
+    const g = G(P(S(sph(3, 0x8d6e63, 16, 10), 1, 0.6, 1.6), 0, 0, 0), P(box(1.2, 1, 0.6, 0x1b1b1b), 0, 0.6, 4.6));
+    const fire = P(cone(0.4, 0.9, 0xff7043, 6, { emissive: 0xff5722 }), 0, 0.6, 5); g.add(fire);
+    for (let i = 0; i < 5; i++) g.add(P(cyl(0.25, 0.3, 0.9, 0xe07a3a, 8), -3 + i * 1.5, 0.45, 6.4));
+    return { g, r: 5, update: t => { fire.scale.y = 1 + Math.sin(t * 10) * 0.3; } };
+  },
+  templeHall() { const g = hall(12, 9, 5, 0xf3e5c8, 0x7a2e1f, 0x2f3e46, 3.4); g.add(P(box(8, 2, 6, 0x7a2e1f), 0, 7.4, 0)); g.add(P(roof(11, 9, 2.6, 0x2f3e46), 0, 8.2, 0)); return { g, r: 9 }; },
+  yumedono() {
+    const g = G(P(cyl(6, 6.4, 1, STONE, 8), 0, 0.5, 0));
+    for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; g.add(P(cyl(0.2, 0.2, 4, VERM, 8), Math.cos(a) * 4.3, 3, Math.sin(a) * 4.3)); }
+    g.add(P(cyl(4, 4, 3.6, 0xf3e5c8, 8), 0, 2.8, 0)); g.add(P(cone(6.4, 3.4, 0x2f3e46, 8), 0, 6.4, 0));
+    g.add(P(sph(0.5, GOLD, 10, 8, { emissive: 0x6b4500 }), 0, 8.4, 0));
+    return { g, r: 6.5 };
+  },
+  shosoin() {
+    const g = new THREE.Group();
+    for (let i = 0; i < 4; i++) for (const z of [-2.5, 2.5]) g.add(P(cyl(0.35, 0.35, 2.5, 0x5d4037, 8), -7 + i * 4.6, 1.25, z));
+    const body = box(16, 4.5, 7, 0x6d4c41); P(body, 0, 4.8, 0); g.add(body);
+    for (let y = 2.8; y < 7; y += 0.6) g.add(P(box(16.2, 0.12, 7.2, 0x4e342e), 0, y, 0));
+    g.add(P(roof(19, 10, 3, 0x2f3e46), 0, 7, 0));
+    return { g, r: 9 };
+  },
+  bridge() {
+    const g = new THREE.Group();
+    for (let i = 0; i <= 14; i++) { const t = i / 14, z = -9 + t * 18, y = 1 + Math.sin(t * Math.PI) * 1.5; g.add(P(R(box(4, 0.3, 1.35, 0xa0703a), Math.cos(t * Math.PI) * 0.3, 0, 0), 0, y, z)); for (const x of [-1.9, 1.9]) g.add(P(cyl(0.07, 0.07, 1, VERM, 6), x, y + 0.6, z)); }
+    for (const x of [-1.9, 1.9]) for (const z of [-6, -2, 2, 6]) g.add(P(cyl(0.22, 0.22, 4, DARKWOOD, 8), x, 0, z));
+    return { g, r: 3, solid: false };
+  },
+  ukaiBoat() {
+    const g = new THREE.Group(), boats = [];
+    for (let i = 0; i < 3; i++) {
+      const b = G(P(box(6, 0.6, 1.4, 0x5d4037), 0, 0.3, 0), P(R(cyl(0.05, 0.05, 2.4, 0x3e2723, 5), 0, 0, -0.5), 2.6, 1.4, 0));
+      const fire = P(sph(0.35, 0xff9f1c, 8, 6, { emissive: 0xff6d00, emissiveIntensity: 1.4 }), 3.2, 2.4, 0); b.add(fire);
+      b.add(P(person({ robe: 0x111111, accent: 0xffd166, hat: 'band' }), -1, 0.6, 0));
+      for (let k = 0; k < 3; k++) b.add(P(S(sph(0.25, 0x111111, 8, 6), 1.2, 1, 1), 3 + k * 0.6, 0.1, (k - 1) * 0.8));
+      P(b, (i - 1) * 2.5, 0, i * 4 - 4); g.add(b); boats.push(b);
+    }
+    return { g, r: 4, solid: false, update: t => boats.forEach((b, i) => { b.position.y = Math.sin(t * 1.2 + i) * 0.1; b.rotation.z = Math.sin(t + i) * 0.04; }) };
+  },
+  heikeFleet() {
+    const g = new THREE.Group(), ships = [];
+    for (let i = 0; i < 4; i++) {
+      const s = G(P(box(7, 1.6, 2.2, 0x5d4037), 0, 0.8, 0), P(R(cone(1.1, 2, 0x5d4037, 4), 0, Math.PI / 4, -Math.PI / 2), 4.4, 0.9, 0), P(cyl(0.12, 0.12, 6, DARKWOOD, 6), 0, 4, 0), P(box(0.08, 3.6, 3, i % 2 ? 0xd62828 : 0xf8f9fa), 0, 4.5, 0));
+      P(s, (i % 2) * 8 - 4, 0, i * 7 - 10); s.rotation.y = 0.3 * i; g.add(s); ships.push(s);
+    }
+    return { g, r: 12, update: t => ships.forEach((s, i) => { s.position.y = Math.sin(t + i) * 0.15; s.rotation.z = Math.sin(t * 0.8 + i) * 0.05; }) };
+  },
+  shrine() {
+    const g = hall(9, 7, 4.2, 0xfff3e0, VERM, 0x2a9d8f, 3);
+    const t = torii(); S(t, 0.55); P(t, 0, 0, 9); g.add(t);
+    for (const x of [-2.6, 2.6]) g.add(P(G(P(cyl(0.4, 0.5, 0.5, 0x9e9e9e, 6), 0, 0.25, 0), P(cyl(0.15, 0.15, 1.2, 0x9e9e9e, 6), 0, 1, 0), P(box(0.7, 0.7, 0.7, 0xfff3b0, { emissive: 0xffb703, emissiveIntensity: 0.6 }), 0, 1.9, 0), P(cone(0.75, 0.5, 0x8a8a8a, 6), 0, 2.5, 0)), x, 0, 7));
+    return { g, r: 7 };
+  },
+  biwaStage() {
+    const g = G(P(box(7, 0.8, 5, 0xa47148), 0, 0.4, 0));
+    for (const x of [-3.2, 3.2]) for (const z of [-2.2, 2.2]) g.add(P(cyl(0.15, 0.15, 3.4, DARKWOOD, 6), x, 2.5, z));
+    g.add(P(roof(8.5, 6.5, 1.8, 0x3d4f5c), 0, 4.2, 0));
+    const p = person({ robe: 0x2b2d42, accent: 0xf2cc8f, hat: 'bald' }); P(p, 0, 0.8, 0); g.add(p);
+    g.add(P(R(S(sph(0.45, 0x8d5a3b), 0.7, 1.2, 0.2), 0, 0, 0.5), 0.3, 1.9, 0.5));
+    return { g, r: 4.5 };
+  },
+  yabusameTrack() {
+    const g = G(P(box(4, 0.08, 34, 0xc9a66b), 0, 0.04, 0));
+    for (let z = -16; z <= 16; z += 4) for (const x of [-2.2, 2.2]) g.add(P(box(0.15, 1.2, 0.15, 0x6d4c41), x, 0.6, z));
+    for (const z of [-10, 0, 10]) { g.add(P(cyl(0.08, 0.08, 2.2, 0x6d4c41, 5), -4, 1.1, z)); g.add(P(box(0.08, 1, 1, 0xfffaf0), -4, 2, z)); g.add(P(cyl(0.3, 0.3, 0.09, 0xd62828, 12), -3.95, 2, z).rotateZ(Math.PI / 2)); }
+    return { g, r: 3, solid: false };
+  },
+  stoneWall() {
+    const g = new THREE.Group(); rng(9);
+    for (let i = 0; i < 26; i++) for (let j = 0; j < 3; j++) { const r = new THREE.Mesh(new THREE.DodecahedronGeometry(0.7), M(0x8a8680, { flatShading: true })); r.castShadow = true; P(r, -16 + i * 1.25 + (j % 2) * 0.6, 0.6 + j * 0.95, 0); r.rotation.set(rnd(), rnd(), rnd()); g.add(r); }
+    return { g, r: 4, solid: false };
+  },
+  forge() {
+    const g = G(P(box(9, 0.3, 8, 0x6d4c41), 0, 0.15, 0));
+    for (const [x, z] of [[-4, -3.5], [4, -3.5], [-4, 3.5], [4, 3.5]]) g.add(P(cyl(0.2, 0.2, 4, DARKWOOD, 6), x, 2, z));
+    g.add(P(R(gable(10, 9, 2.4, 0x5d4037), 0, Math.PI / 2, 0), 0, 4, 0));
+    g.add(P(box(2.4, 1.4, 2, 0x616161), -2, 0.7, -1.5));
+    const glow = P(box(1.4, 0.3, 1, 0xff7043, { emissive: 0xff3d00, emissiveIntensity: 1.5 }), -2, 1.45, -1.5); g.add(glow);
+    g.add(P(box(1.4, 0.8, 0.8, 0x333333), 1.5, 0.4, 0)); g.add(P(box(2, 0.1, 0.2, 0xdddddd), 1.5, 0.85, 0));
+    return { g, r: 5.5, update: t => { glow.material.emissiveIntensity = 1.2 + Math.sin(t * 4) * 0.4; } };
+  },
+  teaHouse() {
+    const g = G(P(box(7, 0.5, 6, 0xbcb8b1), 0, 0.25, 0));
+    g.add(P(box(6, 3, 5, 0xd7c9aa), 0, 2, 0)); g.add(P(roof(8, 7, 2.6, 0xb5833f), 0, 3.5, 0));
+    g.add(P(box(1, 1, 0.1, 0x3e2723), 1.6, 1, 2.52));
+    for (let i = 0; i < 6; i++) g.add(P(cyl(0.5, 0.5, 0.15, 0x9e9e9e, 8), 1.6 + (i % 2) * 0.6, 0.08, 4 + i * 1.2));
+    g.add(P(G(P(cyl(0.6, 0.7, 0.6, 0x9e9e9e, 10), 0, 0.3, 0), P(cyl(0.45, 0.45, 0.1, 0x48cae4, 10), 0, 0.62, 0)), -2.5, 0, 4));
+    return { g, r: 5 };
+  },
+  beachCross() {
+    const g = G(P(box(3, 1, 3, STONE), 0, 0.5, 0), P(box(1.4, 4, 1.4, 0xbdbdbd), 0, 3, 0));
+    const t = textTexture(['1543', '鉄砲伝来'], { w: 256, h: 384, bg: '#d6d6d6', fg: '#2b2118', font: 'bold 64px serif' });
+    const pl = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 2), new THREE.MeshStandardMaterial({ map: t })); P(pl, 0, 3, 0.71); g.add(pl);
+    return { g, r: 2.5 };
+  },
+  okikuWell() {
+    const g = G(P(cyl(1.6, 1.7, 1.2, 0x8a8680, 14), 0, 0.6, 0), P(cyl(1.25, 1.25, 0.2, 0x0b0b0b, 14), 0, 1.15, 0));
+    for (const x of [-1.6, 1.6]) g.add(P(cyl(0.1, 0.1, 3, DARKWOOD, 6), x, 1.5, 0));
+    g.add(P(R(gable(4, 2.4, 1, 0x3d4f5c), 0, Math.PI / 2, 0), 0, 3, 0));
+    const ghost = P(S(sph(0.6, 0xe0fbfc, 12, 8, { emissive: 0x9bf6ff, emissiveIntensity: 0.6, transparent: true, opacity: 0.55 }), 1, 1.6, 1), 0, 2.2, 0); g.add(ghost);
+    return { g, r: 2.4, update: t => { ghost.position.y = 2.2 + Math.sin(t) * 0.3; ghost.material.opacity = 0.25 + Math.max(0, Math.sin(t * 0.5)) * 0.4; } };
+  },
+  castleWall() {
+    const g = new THREE.Group();
+    g.add(P(R(cyl(5.5, 7.2, 4.5, 0x9a9a9a, 4), 0, Math.PI / 4, 0), 0, 2.25, 0));
+    g.add(P(cyl(0.9, 0.9, 0.4, 0x6d6d6d, 16).rotateX(Math.PI / 2), 0, 1.6, 5.05));
+    return { g, r: 5.5 };
+  },
+  hillCamp() {
+    const g = G(P(S(sph(10, 0x6a994e, 20, 10), 1, 0.45, 1), 0, -0.5, 0));
+    const cols = [0x6a040f, 0xffffff, 0x1d3557];
+    for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; g.add(P(cyl(0.06, 0.06, 4, DARKWOOD, 5), Math.cos(a) * 3, 5.5, Math.sin(a) * 3)); g.add(P(box(0.04, 2.5, 0.9, cols[i % 3]), Math.cos(a) * 3, 6.3, Math.sin(a) * 3 + 0.45)); }
+    return { g, r: 9 };
+  },
+  drumTower() {
+    const g = new THREE.Group();
+    for (const [x, z] of [[-1.6, -1.6], [1.6, -1.6], [-1.6, 1.6], [1.6, 1.6]]) g.add(P(cyl(0.15, 0.18, 5, DARKWOOD, 6), x, 2.5, z));
+    g.add(P(box(4, 0.3, 4, 0xa47148), 0, 5, 0)); g.add(P(roof(5, 5, 1.6, 0x3d4f5c), 0, 7.4, 0));
+    const drum = P(cyl(1.1, 1.1, 1.2, 0xc0392b, 18).rotateX(Math.PI / 2), 0, 6.2, 0); g.add(drum);
+    g.add(P(cyl(0.95, 0.95, 1.25, 0xf3e5c8, 18).rotateX(Math.PI / 2), 0, 6.2, 0));
+    return { g, r: 3 };
+  },
+  fishMarket() {
+    const g = G(P(box(12, 0.2, 7, 0xbcb8b1), 0, 0.1, 0));
+    for (let i = 0; i < 3; i++) {
+      const st = G(P(box(3, 1, 1.6, 0x8d5a3b), 0, 0.5, 0), P(box(3.4, 0.1, 2.2, 0x1d3557), 0, 2.4, 0));
+      for (const x of [-1.5, 1.5]) st.add(P(cyl(0.06, 0.06, 2.4, DARKWOOD, 5), x, 1.2, -0.9));
+      for (let k = 0; k < 4; k++) st.add(P(S(sph(0.35, [0x90caf9, 0xff8fa3, 0xc0c0c0][k % 3], 8, 6), 1.8, 0.6, 0.8), -1 + k * 0.65, 1.15, 0));
+      P(st, -4 + i * 4, 0, 0); g.add(st);
+    }
+    return { g, r: 6.5 };
+  },
+  sushiStall() {
+    const g = G(P(box(5, 0.2, 3.5, 0xc9a66b), 0, 0.1, 0), P(box(3.6, 1.1, 1.2, 0x8d5a3b), 0, 0.65, 0.8));
+    for (const [x, z] of [[-1.8, -1.2], [1.8, -1.2], [-1.8, 1.2], [1.8, 1.2]]) g.add(P(cyl(0.08, 0.08, 2.8, DARKWOOD, 5), x, 1.4, z));
+    g.add(P(roof(4.6, 3.6, 1, 0x3d4f5c), 0, 2.8, 0));
+    const n = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 0.8), new THREE.MeshStandardMaterial({ map: textTexture('すし', { w: 256, h: 64, bg: '#1d3557', fg: '#fff', font: 'bold 48px serif' }), side: THREE.DoubleSide }));
+    P(n, 0, 2.4, 1.25); g.add(n);
+    for (let k = 0; k < 5; k++) g.add(P(box(0.3, 0.14, 0.18, [0xff6b6b, 0xffd166, 0xffa07a][k % 3]), -1.2 + k * 0.6, 1.27, 0.8));
+    return { g, r: 3 };
+  },
+  sekisho() {
+    const g = G(P(box(14, 0.3, 8, 0xbcb8b1), 0, 0.15, 0));
+    const gate = G(P(cyl(0.3, 0.3, 5, DARKWOOD, 8), -2.5, 2.5, 3), P(cyl(0.3, 0.3, 5, DARKWOOD, 8), 2.5, 2.5, 3), P(box(6.5, 0.5, 0.6, DARKWOOD), 0, 5, 3), P(roof(7.5, 2, 1, 0x3d4f5c), 0, 5.2, 3));
+    g.add(gate); g.add(P(hall(8, 4, 3, 0xf3efe6, DARKWOOD, 0x3d4f5c, 1.8), 4, 0, -1.5));
+    for (let i = 0; i < 6; i++) g.add(P(box(0.3, 2, 0.3, DARKWOOD), -7 + i * 0.9, 1, 3));
+    return { g, r: 7 };
+  },
+  cedarRoad() {
+    const g = G(P(box(4, 0.1, 30, 0xb0aaa0), 0, 0.05, 0));
+    for (let z = -14; z <= 14; z += 4) for (const x of [-3.5, 3.5]) g.add(P(G(P(cyl(0.45, 0.6, 6, 0x5e3b2a, 8), 0, 3, 0), P(cone(2.2, 9, 0x1b4332, 9), 0, 9, 0)), x, 0, z));
+    return { g, r: 3, solid: false };
+  },
+  battery() {
+    const g = G(P(box(12, 1.6, 8, 0x8a8680), 0, 0.8, 0));
+    for (let i = 0; i < 3; i++) { const c = G(P(cyl(0.3, 0.38, 3.2, 0x2b2b2b, 10).rotateX(Math.PI / 2), 0, 0.6, 1), P(box(1, 0.6, 1.2, 0x5d4037), 0, 0.2, 0)); P(c, -4 + i * 4, 1.6, 2); g.add(c); }
+    return { g, r: 6.5 };
+  },
+  telegraphGift() {
+    const g = G(P(box(5, 0.9, 2.4, 0x8d5a3b), 0, 0.45, 0), P(box(1.2, 0.5, 0.8, 0xc49a6c), -1, 1.15, 0), P(box(0.6, 0.15, 0.3, 0xb08d57), 1, 1.0, 0));
+    for (let i = 0; i < 6; i++) g.add(P(box(1.2, 0.12, 0.2, 0x6d4c41), -5 + i * 1.3, 0.06, 3));
+    const loco = G(P(cyl(0.35, 0.35, 1.4, 0x1b1b1b, 10).rotateZ(Math.PI / 2), 0, 0.6, 0), P(box(0.6, 0.7, 0.7, 0xd62828), -0.8, 0.65, 0), P(cyl(0.1, 0.08, 0.5, 0x1b1b1b, 6), 0.5, 1.1, 0));
+    g.add(P(loco, -2, 0, 3));
+    for (const x of [3.5, 6]) g.add(P(cyl(0.08, 0.08, 4, 0x6d4c41, 6), x, 2, -1));
+    g.add(P(cyl(0.02, 0.02, 2.5, 0x222222, 4).rotateZ(Math.PI / 2), 4.75, 3.8, -1));
+    return { g, r: 4, update: t => { loco.position.x = -4 + ((t * 0.8) % 6); } };
+  },
+  gasLamp() {
+    const g = new THREE.Group();
+    for (let i = 0; i < 5; i++) { const l = G(P(cyl(0.08, 0.12, 3.6, 0x2b2d42, 8), 0, 1.8, 0), P(box(0.5, 0.6, 0.5, 0xfff3b0, { emissive: 0xffd166, emissiveIntensity: 1.2 }), 0, 3.8, 0), P(cone(0.45, 0.4, 0x2b2d42, 4), 0, 4.3, 0)); P(l, 0, 0, -8 + i * 4); g.add(l); }
+    g.add(P(box(3, 0.08, 20, 0x9e9e9e), 1.8, 0.04, 0));
+    return { g, r: 2, solid: false };
+  },
+  childrenMonument() {
+    const g = G(P(cyl(3.4, 3.6, 0.6, 0xbdbdbd, 16), 0, 0.3, 0), P(cyl(0.7, 2.2, 7, 0xd6d6d6, 3), 0, 4, 0), P(person({ robe: 0xffd166, accent: 0xffffff, hat: 'hair', skin: 0xd4a017 }), 0, 7.5, 0));
+    const cols = [0xff4d6d, 0xffd166, 0x06d6a0, 0x118ab2, 0xc77dff, 0xff9f1c];
+    for (let k = 0; k < 6; k++) for (let i = 0; i < 10; i++) g.add(P(R(cone(0.15, 0.35, cols[(i + k) % 6], 4), 0, i, 0), -4.5 + k * 1.8, 0.3 + (10 - i) * 0.2, -3.4 - (i % 2) * 0.1));
+    return { g, r: 4 };
+  },
+  peaceFlame() {
+    const g = G(P(box(6, 0.6, 3, 0xbdbdbd), 0, 0.3, 0), P(box(5, 0.3, 2, 0x48cae4, { emissive: 0x0077b6, emissiveIntensity: 0.3 }), 0, 0.7, 0));
+    const f = P(cone(0.5, 1.4, 0xffb703, 8, { emissive: 0xff8800, emissiveIntensity: 1.6 }), 0, 1.6, 0); g.add(f);
+    g.add(P(box(1.8, 1, 1.4, 0x9e9e9e), 0, 0.8, 0));
+    return { g, r: 3.5, update: t => { f.scale.set(1 + Math.sin(t * 13) * 0.08, 1 + Math.sin(t * 9) * 0.25, 1); } };
+  },
+  yoyogi() {
+    const g = G(P(S(sph(12, 0xd6d6d6, 24, 10), 1, 0.45, 0.75), 0, 0, 0));
+    g.add(P(cyl(0.5, 0.8, 14, 0xe0e0e0, 8), -6, 7, 0)); g.add(P(cyl(0.5, 0.8, 14, 0xe0e0e0, 8), 6, 7, 0));
+    g.add(P(cyl(0.12, 0.12, 12, 0x555555, 6).rotateZ(Math.PI / 2), 0, 13.6, 0));
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(2, 0.25, 8, 24), M(0xe63946)); P(ring, 0, 6, 9.2); g.add(ring);
+    return { g, r: 12 };
+  },
+  seawall() {
+    const g = G(P(box(4, 12.5, 30, 0xbdbdbd), 0, 6.25, 0));
+    g.add(P(box(1, 0.4, 30, 0x9e9e9e), -2, 12.7, 0));
+    return { g, r: 3, solid: false };
+  },
+  tsunamiStone() {
+    const g = G(P(box(2.6, 0.5, 1.8, 0x9e9e9e), 0, 0.25, 0));
+    const st = new THREE.Mesh(new THREE.BoxGeometry(1.4, 3.4, 0.5), M(0x8a8680)); st.castShadow = true; P(st, 0, 2.2, 0); g.add(st);
+    const t = textTexture(['此処より下に', '家を建てるな'], { w: 256, h: 512, bg: '#8a8680', fg: '#2b2118', font: 'bold 44px serif' });
+    const pl = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 2.8), new THREE.MeshStandardMaterial({ map: t })); P(pl, 0, 2.2, 0.26); g.add(pl);
+    return { g, r: 2 };
+  },
+  grandRing() {
+    const g = new THREE.Group(), R0 = 22, n = 40;
+    for (let i = 0; i < n; i++) {
+      const a = i / n * Math.PI * 2, x = Math.cos(a) * R0, z = Math.sin(a) * R0;
+      const fr = G(P(cyl(0.3, 0.3, 8, 0xc49a6c, 6), -1.2, 4, 0), P(cyl(0.3, 0.3, 8, 0xc49a6c, 6), 1.2, 4, 0), P(box(3, 0.4, 3.4, 0xa47148), 0, 8.2, 0), P(box(3.2, 0.3, 0.4, 0xc49a6c), 0, 4, 0));
+      P(fr, x, 0, z); fr.rotation.y = -a; g.add(fr);
+    }
+    const top = new THREE.Mesh(new THREE.TorusGeometry(R0, 1.7, 4, 64), M(0x6a994e)); top.rotation.x = Math.PI / 2; P(top, 0, 8.7, 0); g.add(top);
+    return { g, r: 3, solid: false };
+  },
+  pavilion() {
+    const g = new THREE.Group();
+    const cols = [0xff006e, 0x3a86ff, 0xffbe0b, 0x06d6a0];
+    cols.forEach((c, i) => { const p = G(P(box(5, 5 + i, 5, c), 0, (5 + i) / 2, 0), P(sph(1.6, 0xffffff, 12, 8, { emissive: 0xffffff, emissiveIntensity: 0.3 }), 0, 6 + i, 0)); P(p, (i % 2) * 7 - 3.5, 0, Math.floor(i / 2) * 7 - 3.5); g.add(p); });
+    return { g, r: 9 };
+  },
+  hanabiStage() {
+    const g = G(P(box(8, 0.8, 5, 0x343a40), 0, 0.4, 0));
+    for (let i = 0; i < 6; i++) g.add(P(cyl(0.2, 0.2, 1.4, 0xd62828, 8), -3 + i * 1.2, 1.5, 0));
+    const sparks = [];
+    for (let i = 0; i < 24; i++) { const s = sph(0.25, 0xffffff, 6, 4, { emissive: [0xff006e, 0xffd60a, 0x00f5d4][i % 3], emissiveIntensity: 2 }); s.castShadow = false; g.add(s); sparks.push(s); }
+    return { g, r: 5, update: t => { const k = (t * 0.4) % 1; sparks.forEach((s, i) => { const a = i / 24 * Math.PI * 2; s.position.set(Math.cos(a) * k * 8, 18 + Math.sin(a) * k * 8 - k * k * 3, 0); s.visible = k > 0.15; s.scale.setScalar(1 - k * 0.7); }); } };
+  },
+});
+
+// Décors supplémentaires
+DECOR.chestnut = l => DECOR.maple(l.map(o => ({ ...o, chest: true }))).map((m, i) => { if (i === 1) { m.material = M(0xffffff, { flatShading: true, map: T('grain') }); for (let k = 0; k < l.length; k++) m.setColorAt(k, new THREE.Color([0x6a994e, 0x588157, 0x7fb069][k % 3])); } return m; });
+DECOR.cedar = l => inst([
+  { geo: new THREE.CylinderGeometry(0.35, 0.55, 5, 7), color: 0x5e3b2a, y: 2.5 },
+  { geo: new THREE.ConeGeometry(1.8, 8, 8), color: 0xffffff, y: 8, colors: [0x1b4332, 0x2d6a4f, 0x24493d] },
+], l);
+DECOR.banner = l => inst([
+  { geo: new THREE.CylinderGeometry(0.05, 0.05, 5, 5), color: 0x5d3a24, y: 2.5 },
+  { geo: new THREE.BoxGeometry(0.05, 2.6, 0.9), color: 0xffffff, y: 3.4, dz: 0.5, colors: [0x6a040f, 0xf8f9fa, 0x1d3557, 0xffb703, 0x111111] },
+], l);

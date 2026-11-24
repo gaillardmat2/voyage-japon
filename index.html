@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="theme-color" content="#d9381e">
 <title>Michi — Le voyage du pèlerin du temps</title>
-<meta name="description" content="Un jeu 3D d'exploration qui retrace toute l'histoire du Japon, de l'époque Jōmon à l'ère Reiwa.">
+<meta name="description" content="Un jeu 3D d'exploration qui retrace toute l'histoire du Japon, de l'époque Jōmon à l'ère Reiwa, de ville en ville.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛩️</text></svg>">
 <link rel="stylesheet" href="style.css">
 <script type="importmap">
@@ -18,25 +18,29 @@
 <!-- HUD -->
 <div id="hud">
   <div id="era-card">
-    <div id="era-name">Jōmon</div>
+    <div id="era-name">Michi</div>
     <div id="era-dates"></div>
     <div id="era-progress"></div>
   </div>
-  <div id="timeline"></div>
   <div id="tools">
-    <span id="total" title="Découvertes au total">0/0</span>
+    <span id="total" title="Progression du voyage">0 %</span>
+    <button id="btn-map" title="Carte du Japon (M)">🗾</button>
     <button id="btn-journal" title="Carnet de voyage (J)">📜</button>
     <button id="btn-hint" title="Demander à Kiko (H)">🦊</button>
     <button id="btn-music" title="Musique">🔈</button>
     <button id="btn-quality" title="Qualité graphique">HD</button>
     <button id="btn-full" title="Plein écran">⛶</button>
+    <button id="btn-profile" title="Joueur">👤</button>
   </div>
 </div>
+<div id="tracker"></div>
+<div id="compass"><div id="compass-arrow">▲</div><span id="compass-dist"></span></div>
 <button id="btn-act"></button>
 <div id="joystick"><div id="knob"></div></div>
 
 <div id="banner"><div id="banner-num"></div><div id="banner-name"></div><div id="banner-dates"></div></div>
 <div id="toast"></div>
+<div id="fade"></div>
 
 <!-- Dialogue -->
 <div id="dialog">
@@ -44,6 +48,14 @@
   <p id="dlg-text"></p>
   <div id="dlg-options"></div>
   <button id="dlg-next">Suivant ▸</button>
+</div>
+
+<!-- Carte du Japon -->
+<div id="travel" class="modal">
+  <div class="sheet wide">
+    <header><h2>🗾 Carte du voyage</h2><button id="travel-close">✕</button></header>
+    <div class="travel-grid"><div id="travel-map"></div><div id="travel-list"></div></div>
+  </div>
 </div>
 
 <!-- Carnet -->
@@ -54,6 +66,33 @@
   </div>
 </div>
 
+<!-- Mini-jeux -->
+<div id="minigame" class="modal">
+  <div class="sheet mg">
+    <header><h2 id="mg-title"></h2><button id="mg-quit" title="Quitter">✕</button></header>
+    <div id="mg-stage">
+      <canvas id="mg-canvas"></canvas>
+      <div id="mg-intro" class="mg-over"><p id="mg-help"></p><button id="mg-start" class="big">Commencer ▸</button></div>
+      <div id="mg-result" class="mg-over" style="display:none"><div id="mg-verdict"></div><div id="mg-score"></div><div class="row"><button id="mg-retry" class="ghost">↻ Rejouer</button><button id="mg-continue" class="big">Continuer ▸</button></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Menu joueur -->
+<div id="profile-menu" class="modal">
+  <div class="sheet small">
+    <header><h2>👤 <span id="pm-name"></span></h2><button id="pm-close">✕</button></header>
+    <p id="pm-progress" class="muted"></p>
+    <p>Ta partie est sauvegardée automatiquement sur cet appareil. Pour la continuer sur un autre appareil (ton Fold, un autre PC…), copie ton code de transfert et colle-le dans « Importer une partie » sur l'écran d'accueil.</p>
+    <button id="pm-export" class="big">📋 Obtenir mon code de transfert</button>
+    <textarea id="pm-code" readonly rows="3" placeholder="Ton code apparaîtra ici"></textarea>
+    <div class="row"><button id="pm-switch" class="ghost">Changer de joueur</button></div>
+  </div>
+</div>
+
+<!-- Confirmation -->
+<div id="ask" class="modal"><div class="sheet small"><p id="ask-text"></p><div class="row"><button id="ask-no" class="ghost">Annuler</button><button id="ask-yes" class="big">Oui</button></div></div></div>
+
 <!-- Certificat -->
 <div id="certificate" class="modal">
   <div class="sheet cert">
@@ -63,8 +102,9 @@
     <div id="cert-name"></div>
     <p>qui a parcouru tout le chemin de l'histoire du Japon, de l'époque Jōmon à l'ère Reiwa, et répondu aux neuf gardiens du torii.</p>
     <div id="cert-stamps"></div>
+    <p id="cert-stats" class="muted"></p>
     <p class="muted">Le <span id="cert-date"></span> — signé : Kiko 🦊</p>
-    <div class="row"><button id="cert-close" class="big">Continuer à explorer</button><button id="cert-restart" class="ghost">Recommencer</button></div>
+    <div class="row"><button id="cert-close" class="big">Continuer à explorer</button></div>
   </div>
 </div>
 
@@ -75,26 +115,30 @@
     <div class="kanji">道</div>
     <h1>Michi</h1>
     <h2>Le voyage du pèlerin du temps</h2>
-    <p class="lead">Parcours 16 000 ans d'histoire du Japon en 3D : visite les monuments, parle aux personnages célèbres et réponds aux gardiens des torii.</p>
+    <p class="lead">16 000 ans d'histoire du Japon, de ville en ville : 24 lieux, des quêtes, des objets cachés et des mini-jeux d'époque.</p>
     <div id="loading">Chargement du monde…</div>
     <div id="title-buttons" style="display:none">
-      <input id="player-name" maxlength="24" placeholder="Ton prénom de pèlerin" autocomplete="off">
-      <div class="row">
-        <button id="btn-continue" class="big" style="display:none">Continuer ▸</button>
+      <h3 id="profiles-title">Choisis ton pèlerin</h3>
+      <div id="profiles"></div>
+      <div class="newp">
+        <h3>Nouveau joueur</h3>
+        <input id="player-name" maxlength="24" placeholder="Ton prénom de pèlerin" autocomplete="off">
+        <div id="swatches"></div>
         <button id="btn-new" class="big">Commencer le voyage ▸</button>
       </div>
+      <button id="btn-import" class="linkish">📥 Importer une partie (code de transfert)</button>
+      <div id="import-box"><textarea id="import-code" rows="3" placeholder="Colle ici le code qui commence par MICHI-"></textarea><button id="btn-import-go" class="big">Importer</button><p id="import-msg" class="muted"></p></div>
     </div>
     <div class="help">
       <span><kbd>Z</kbd><kbd>Q</kbd><kbd>S</kbd><kbd>D</kbd> / flèches : marcher</span>
       <span><kbd>Maj</kbd> : courir</span>
-      <span><kbd>E</kbd> : parler / découvrir</span>
-      <span>Glisser : tourner la caméra · Molette ou pincer : zoom</span>
+      <span><kbd>E</kbd> : interagir</span>
+      <span><kbd>M</kbd> : carte · <kbd>J</kbd> : carnet · <kbd>H</kbd> : aide</span>
     </div>
   </div>
 </div>
 
 <script>
-  // Si le moteur 3D ne se charge pas (connexion coupée…), on l'indique.
   setTimeout(function () {
     var l = document.getElementById('loading');
     if (l && l.style.display !== 'none') l.textContent = "Le chargement est long… Vérifie ta connexion internet puis recharge la page.";
