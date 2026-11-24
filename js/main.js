@@ -4,7 +4,8 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { BUILD, DECOR, M, P, box, cyl, cone, sph, person, fox, torii, rng, rnd, G, WATERS } from './builders.js';
+import { BUILD, DECOR, M, P, box, cyl, cone, sph, fox, torii, rng, rnd, G, WATERS } from './builders.js';
+import { person, CROWD } from './humans.js';
 import { get as TEX } from './textures.js';
 import { ERAS, KIKO_TUTORIAL } from './places.js';
 import { playMinigame, GAME_TITLES } from './minigames.js';
@@ -194,12 +195,12 @@ function buildPlace(pl) {
     if (pl.terrain === 'coast' && x > ter.seaX(z) - 13) cc.lerp(sand, smooth(ter.seaX(z) - 13, ter.seaX(z) - 6, x));
     if (y < -0.1) cc.lerp(deep, 0.6);
     if ((pl.terrain === 'river' && Math.abs(x - ter.riverX(z)) < 8) || (ter.lake && Math.hypot(x - ter.lake.x, z - ter.lake.z) < ter.lake.r + 3)) cc.lerp(sand, 0.45);
-    if (Math.abs(x) < 70 && Math.abs(z) < 70) { const d = segDist(x, z); if (d < 2.6) cc.lerp(dirt, smooth(2.6, 1.2, d) * 0.85); }
+    if (Math.abs(x) < 70 && Math.abs(z) < 70) { const d = segDist(x, z); if (d < 2.2) cc.lerp(dirt, smooth(2.2, 1.0, d) * 0.6); }
     if (pl.snow) cc.lerp(snow, 0.62);
     cols.set([cc.r, cc.g, cc.b], k * 3);
   }
   tg.setAttribute('color', new THREE.BufferAttribute(cols, 3)); tg.computeVertexNormals();
-  const gt = TEX('grain').clone(); gt.repeat.set(48, 48); gt.needsUpdate = true;
+  const gt = TEX('groundDetail').clone(); gt.repeat.set(60, 60); gt.needsUpdate = true;
   const ground = new THREE.Mesh(tg, new THREE.MeshStandardMaterial({ vertexColors: true, map: gt, bumpMap: TEX('grainBump'), bumpScale: 0.8, roughness: 0.96 }));
   ground.receiveShadow = true; group.add(ground);
 
@@ -234,10 +235,10 @@ function buildPlace(pl) {
 
   // Personnages
   pl.npcs.forEach(n => {
-    const y = H(n.x, n.z), body = person(n.look); P(body, n.x, y, n.z);
+    const y = H(n.x, n.z), body = person(n.look, pl.era, n.id.length * 7 + n.x); P(body, n.x, y, n.z);
     body.rotation.y = Math.atan2(SPAWN.x - n.x, SPAWN.z - n.z); group.add(body);
-    const lab = labelSprite(n.name); P(lab, n.x, y + 3.25, n.z); group.add(lab);
-    const bub = new THREE.Sprite(new THREE.SpriteMaterial({ map: BUB.give, depthWrite: false, transparent: true })); bub.scale.set(0.9, 0.9, 1); P(bub, n.x, y + 4.1, n.z); bub.visible = false; group.add(bub);
+    const lab = labelSprite(n.name); P(lab, n.x, y + 2.45, n.z); group.add(lab);
+    const bub = new THREE.Sprite(new THREE.SpriteMaterial({ map: BUB.give, depthWrite: false, transparent: true })); bub.scale.set(0.8, 0.8, 1); P(bub, n.x, y + 3.15, n.z); bub.visible = false; group.add(bub);
     const it = { kind: 'npc', data: n, pos: new THREE.Vector3(n.x, y, n.z), body, bub, label: n.name, baseRot: body.rotation.y };
     W.npcs[n.id] = it; W.inter.push(it); W.colliders.push({ x: n.x, z: n.z, r: 0.7 });
   });
@@ -258,8 +259,8 @@ function buildPlace(pl) {
     W.colliders.push({ x: GATE.x - 5, z: GATE.z, r: 0.9 }, { x: GATE.x + 5, z: GATE.z, r: 0.9 });
     const barrier = new THREE.Mesh(new THREE.PlaneGeometry(9.4, 9.2), new THREE.MeshBasicMaterial({ color: 0x9bf6ff, transparent: true, opacity: 0.4, side: THREE.DoubleSide, depthWrite: false }));
     P(barrier, GATE.x, y + 4.6, GATE.z); group.add(barrier);
-    const keeper = person({ robe: 0xffffff, accent: 0xd62828, hat: pl.final ? 'crown' : 'eboshi' }); P(keeper, GATE.x + 6.5, y, GATE.z + 2.5); keeper.rotation.y = 0.6; group.add(keeper);
-    const kl = labelSprite(pl.final ? 'Gardienne du temps' : 'Gardien du torii', 'rgba(217,56,30,0.95)', '#fff'); P(kl, GATE.x + 6.5, y + 3.25, GATE.z + 2.5); group.add(kl);
+    const keeper = person({ robe: 0xffffff, accent: 0xd62828, hat: pl.final ? 'crown' : 'eboshi' }, pl.era, 5); W.updaters.push(t => keeper.userData.anim(t, 0, false)); P(keeper, GATE.x + 6.5, y, GATE.z + 2.5); keeper.rotation.y = 0.6; group.add(keeper);
+    const kl = labelSprite(pl.final ? 'Gardienne du temps' : 'Gardien du torii', 'rgba(217,56,30,0.95)', '#fff'); P(kl, GATE.x + 6.5, y + 2.45, GATE.z + 2.5); group.add(kl);
     W.gate = { kind: 'gate', pos: new THREE.Vector3(GATE.x + 6.5, y, GATE.z + 2.5), barrier, label: pl.final ? 'Gardienne du temps' : 'Gardien du torii' };
     W.inter.push(W.gate); W.colliders.push({ x: GATE.x + 6.5, z: GATE.z + 2.5, r: 0.7 });
   }
@@ -332,14 +333,26 @@ function buildPlace(pl) {
     plots.forEach(([x, z], k) => { mtx.makeTranslation(x, 0.06, z); pm.setMatrixAt(k, mtx); for (let i = 0; i < 12; i++) { mtx.makeTranslation(x - 3.6 + (i % 4) * 2.4, 0.4, z - 2.5 + Math.floor(i / 4) * 2.5); sm.setMatrixAt(si++, mtx); } });
     group.add(pm, sm);
   }
-  // Montagnes lointaines
+  // Chaînes de montagnes brumeuses en couches (perspective atmosphérique)
   seeded(pl.id + '-mt');
-  for (let k = 0; k < 14; k++) {
-    const a = k / 14 * Math.PI * 2 + rnd() * 0.3, r = 150 + rnd() * 60, x = Math.cos(a) * r, z = Math.sin(a) * r;
-    if (pl.terrain === 'coast' && x > 40) continue;
-    const h = 30 + rnd() * 40; const mt = cone(40 + rnd() * 30, h, 0, 7);
-    mt.material = M(new THREE.Color(pl.ground).offsetHSL(0.04, -0.15, pl.night ? -0.15 : -0.22).getHex(), { flatShading: true }); mt.castShadow = false;
-    P(mt, x, h / 2 - 2, z); group.add(mt);
+  const fogC = new THREE.Color(pl.fog), hillC = new THREE.Color(pl.ground).offsetHSL(0.05, -0.2, pl.night ? -0.2 : -0.28);
+  [[150, 22, 0.25], [200, 38, 0.5], [270, 60, 0.72]].forEach(([r0, hh, fade], li) => {
+    const n = 180, pos = [], idx = [], ph = rnd() * 10;
+    for (let i = 0; i <= n; i++) {
+      const a = i / n * Math.PI * 2, x = Math.cos(a) * r0, z = Math.sin(a) * r0;
+      let h = hh * (0.55 + 0.25 * Math.sin(a * 5 + ph) + 0.15 * Math.sin(a * 13 + ph * 2) + 0.08 * Math.sin(a * 31 + li));
+      if (pl.terrain === 'coast' && Math.cos(a) > 0.35) h = -20;
+      pos.push(x, -15, z, x, h, z);
+      if (i < n) { const k = i * 2; idx.push(k, k + 1, k + 2, k + 1, k + 3, k + 2); }
+    }
+    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setIndex(idx);
+    const col = hillC.clone().lerp(fogC, fade);
+    const mt = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: col, fog: false, side: THREE.DoubleSide })); group.add(mt);
+  });
+  // Nuages
+  for (let k = 0; k < (pl.night ? 0 : 10); k++) {
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: TEX('cloud'), transparent: true, depthWrite: false, fog: false, opacity: 0.8 }));
+    const a = rnd() * Math.PI * 2, r = 140 + rnd() * 120; sp.position.set(Math.cos(a) * r, 55 + rnd() * 40, Math.sin(a) * r); sp.scale.set(90 + rnd() * 60, 40 + rnd() * 20, 1); group.add(sp);
   }
   if (pl.fuji || pl.id === 'edo') {
     const fuji = G(cone(90, 70, 0, 32), P(cone(32, 25, 0, 32), 0, 22.5, 0));
@@ -361,7 +374,15 @@ function buildPlace(pl) {
     k++;
   }
 
-  // Kiko et le joueur
+  // Passants qui vont et viennent
+  W.crowd = [];
+  seeded(pl.id + '-crowd');
+  const pool = CROWD[pl.era] || CROWD[0];
+  for (let k = 0, tries = 0; k < (quality === 'high' ? 9 : 5) && tries < 200; tries++) {
+    const x = (rnd() - 0.5) * 110, z = (rnd() - 0.5) * 110; if (!W.free(x, z, 1)) continue;
+    const look = pool[k % pool.length], b = person(look, pl.era, 40 + k * 3); P(b, x, H(x, z), z); group.add(b);
+    W.crowd.push({ b, x, z, tx: x, tz: z, wait: rnd() * 3, sp: 1.6 + rnd() * 0.8 }); k++;
+  }
   refreshQuestWorld();
   setPlaceSky(pl, true);
   return W;
@@ -447,15 +468,14 @@ function questTarget() {
 }
 
 // ════════════════ Joueur, Kiko, caméra
-const player = { pos: new THREE.Vector3(SPAWN.x, 0, SPAWN.z), vel: new THREE.Vector3(), mesh: person({ robe: 0x3a86ff, accent: 0xffbe0b, hat: 'straw' }) };
-player.mesh.add(P(cyl(0.05, 0.05, 2.6, 0x8d5a3b, 6), 0.62, 1.2, 0.15)); player.mesh.add(P(box(0.6, 0.7, 0.35, 0xd62828), 0, 1.4, -0.45));
+const player = { pos: new THREE.Vector3(SPAWN.x, 0, SPAWN.z), vel: new THREE.Vector3(), mesh: person({ robe: 0x3a86ff, accent: 0xffbe0b, hat: 'straw' }, 3, 2) };
 scene.add(player.mesh);
 function dressPlayer(color) {
-  scene.remove(player.mesh); player.mesh = person({ robe: color, accent: 0xffbe0b, hat: 'straw' });
-  player.mesh.add(P(cyl(0.05, 0.05, 2.6, 0x8d5a3b, 6), 0.62, 1.2, 0.15)); player.mesh.add(P(box(0.6, 0.7, 0.35, 0xd62828), 0, 1.4, -0.45)); scene.add(player.mesh);
+  scene.remove(player.mesh); player.mesh = person({ robe: color, accent: 0xffbe0b, hat: 'straw' }, 3, 2);
+  const pack = P(box(0.34, 0.42, 0.2, 0x8d5a3b), 0, 0.35, -0.2); player.mesh.userData.torso?.add?.(pack); scene.add(player.mesh);
 }
 const kiko = fox(); kiko.scale.setScalar(0.8); scene.add(kiko);
-const cam = { yaw: 0, pitch: 0.42, dist: 10, tYaw: 0 };
+const cam = { yaw: 0, pitch: 0.36, dist: 8, tYaw: 0 };
 
 // Particules d'ambiance
 const PCOUNT = 420, pGeo = new THREE.BufferGeometry(), pPos = new Float32Array(PCOUNT * 3), pSeed = new Float32Array(PCOUNT);
@@ -540,7 +560,7 @@ function pickOption(n) {
   }
   if (dlg.choices && dlg.choices[n]) { const c = dlg.choices[n]; closeDialog(); c.fn && c.fn(); }
 }
-function closeDialog() { dlg = null; dlgEl.classList.remove('show'); updateHUD(); }
+function closeDialog() { dlg = null; talking = null; dlgEl.classList.remove('show'); updateHUD(); }
 function dialogNext() {
   if (!dlg) return;
   const last = dlg.k >= dlg.pages.length - 1;
@@ -567,8 +587,9 @@ function interact() {
     openDialog({ speaker: it.label, icon: '❓', pages: [`Tu as parcouru l'époque ${era.name}. Voici ma question :`, era.quiz.q], quiz: era.quiz, onDone: ok => { if (ok) solveGate(pl.era); } });
   }
 }
+let talking = null;
 function talkTo(it) {
-  const n = it.data, pl = world.pl;
+  const n = it.data, pl = world.pl; talking = it;
   it.body.rotation.y = Math.atan2(player.pos.x - it.pos.x, player.pos.z - it.pos.z);
   for (const q of pl.quests) {
     const st = curStep(q); if (!st) continue;
@@ -821,6 +842,21 @@ function start(p) {
 renderProfiles(); renderSwatches();
 $('#loading').style.display = 'none'; $('#title-buttons').style.display = '';
 
+function stepWalker(c, dt, t) {
+  const W = world; let moving = 0;
+  if (c.wait > 0) c.wait -= dt;
+  else {
+    const dx = c.tx - c.x, dz = c.tz - c.z, d = Math.hypot(dx, dz);
+    if (d < 0.5) { c.wait = 1 + Math.random() * 4; for (let i = 0; i < 12; i++) { const a = Math.random() * Math.PI * 2, r = 6 + Math.random() * 18, nx = c.x + Math.cos(a) * r, nz = c.z + Math.sin(a) * r; if (Math.abs(nx) < 66 && Math.abs(nz) < 66 && W.free(nx, nz, 0.5)) { c.tx = nx; c.tz = nz; break; } } }
+    else {
+      const nx = c.x + dx / d * c.sp * dt, nz = c.z + dz / d * c.sp * dt;
+      if (W.ter.isWater(nx, nz) || W.colliders.some(o => Math.abs(o.x - nx) < o.r + 0.5 && Math.abs(o.z - nz) < o.r + 0.5 && Math.hypot(o.x - nx, o.z - nz) < o.r + 0.4) || Math.hypot(player.pos.x - nx, player.pos.z - nz) < 1) { c.tx = c.x; c.tz = c.z; }
+      else { c.x = nx; c.z = nz; moving = c.sp; c.b.rotation.y = Math.atan2(dx, dz); }
+    }
+  }
+  c.b.position.set(c.x, W.H(c.x, c.z), c.z); c.b.userData.anim(t, moving, false, dt);
+}
+
 // ════════════════ Boucle principale
 const clock = new THREE.Clock(), tmp = new THREE.Vector3();
 let walkT = 0, saveT = 0;
@@ -850,8 +886,8 @@ function step(dt, t) {
     if (!drags.size && iy > 0.3) { let dy = (player.mesh.rotation.y + Math.PI) - cam.tYaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); cam.tYaw += dy * Math.min(1, dt * 1.2); }
   }
   player.pos.y += (H(player.pos.x, player.pos.z) - player.pos.y) * Math.min(1, dt * 12);
-  player.mesh.position.set(player.pos.x, player.pos.y + Math.abs(Math.sin(walkT)) * 0.18 * Math.min(1, sp / 5), player.pos.z);
-  player.mesh.rotation.z = Math.sin(walkT) * 0.05 * Math.min(1, sp / 5);
+  player.mesh.position.set(player.pos.x, player.pos.y, player.pos.z);
+  player.mesh.userData.anim(t, sp, false, dt);
 
   // Kiko
   const ky = player.mesh.rotation.y;
@@ -862,7 +898,7 @@ function step(dt, t) {
   // Caméra
   cam.yaw += Math.atan2(Math.sin(cam.tYaw - cam.yaw), Math.cos(cam.tYaw - cam.yaw)) * Math.min(1, dt * 8);
   const ch = Math.cos(cam.pitch) * cam.dist, cv = Math.sin(cam.pitch) * cam.dist, cx = player.pos.x + Math.sin(cam.yaw) * ch, cz = player.pos.z + Math.cos(cam.yaw) * ch;
-  camera.position.set(cx, Math.max(player.pos.y + 1.6 + cv, H(cx, cz) + 0.8), cz); camera.lookAt(player.pos.x, player.pos.y + 2, player.pos.z);
+  camera.position.set(cx, Math.max(player.pos.y + 1.6 + cv, H(cx, cz) + 0.8), cz); camera.lookAt(player.pos.x, player.pos.y + 1.5, player.pos.z);
 
   // Ciel et lumière
   const pl = W.pl;
@@ -872,17 +908,18 @@ function step(dt, t) {
   const low = THREE.MathUtils.clamp(skyState.elev / 30, 0, 1);
   sun.color.setRGB(1, 0.72 + 0.26 * low, 0.5 + 0.42 * low);
   sun.intensity = night ? 0.35 : 1.4 + 1.9 * low; hemi.intensity = night ? 0.5 : 0.55;
-  scene.environmentIntensity = night ? 0.35 : 0.9; renderer.toneMappingExposure = night ? 1.15 : 0.95;
+  scene.environmentIntensity = night ? 0.35 : 0.7; renderer.toneMappingExposure = night ? 1.15 : 0.95;
   const sd = sunDir.clone(); if (sd.y < 0.15) sd.y = 0.15;
   sun.position.set(player.pos.x + sd.x * 120, sd.y * 120, player.pos.z + sd.z * 120); sun.target.position.set(player.pos.x, 0, player.pos.z);
   WATERS.forEach((n, k) => n.offset.set(t * 0.02 + k, t * 0.013));
 
   // Animations du lieu
   W.updaters.forEach(f => f(t));
-  W.inter.forEach(it => { if (it.mk && it.mk.visible) { it.mk.rotation.y = t * 1.6; it.mk.position.y = it.pos.y + 3.4 + Math.sin(t * 2.5) * 0.25; } if (it.bub?.visible) it.bub.position.y = it.pos.y + 4.1 + Math.sin(t * 3 + it.pos.x) * 0.12; });
+  W.inter.forEach(it => { if (it.mk && it.mk.visible) { it.mk.rotation.y = t * 1.6; it.mk.position.y = it.pos.y + 3.4 + Math.sin(t * 2.5) * 0.25; } if (it.bub?.visible) it.bub.position.y = it.pos.y + 3.15 + Math.sin(t * 3 + it.pos.x) * 0.12; });
   if (W.gate?.barrier.visible) W.gate.barrier.material.opacity = 0.32 + Math.sin(t * 3) * 0.12;
   // NPC qui se tournent vers le joueur
-  Object.values(W.npcs).forEach(n => { const d = Math.hypot(n.pos.x - player.pos.x, n.pos.z - player.pos.z); const target = d < 6 ? Math.atan2(player.pos.x - n.pos.x, player.pos.z - n.pos.z) : n.baseRot; let dr = target - n.body.rotation.y; dr = Math.atan2(Math.sin(dr), Math.cos(dr)); n.body.rotation.y += dr * Math.min(1, dt * 4); n.body.position.y = n.pos.y + Math.sin(t * 2 + n.pos.z) * 0.03; });
+  Object.values(W.npcs).forEach(n => { const d = Math.hypot(n.pos.x - player.pos.x, n.pos.z - player.pos.z); const target = d < 6 ? Math.atan2(player.pos.x - n.pos.x, player.pos.z - n.pos.z) : n.baseRot; let dr = target - n.body.rotation.y; dr = Math.atan2(Math.sin(dr), Math.cos(dr)); n.body.rotation.y += dr * Math.min(1, dt * 4); n.body.userData.anim(t, 0, talking === n, dt); });
+  W.crowd.forEach(c => stepWalker(c, dt, t));
 
   // Objets cachés et objets de quête
   for (const it of W.items) {

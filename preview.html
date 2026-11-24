@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Michi — Aperçu du nouveau style</title>
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/" } }
+</script>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; font-family: system-ui, sans-serif; background: #e3d9e6; }
+  #c { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; touch-action: none; }
+  .panel { position: fixed; left: 12px; top: 12px; background: rgba(255,250,240,.92); border: 3px solid #d9381e; border-radius: 16px; padding: .6em .9em; max-width: min(420px, 80vw); box-shadow: 0 6px 20px rgba(0,0,0,.2); }
+  .panel h1 { margin: 0; font-size: 1.2em; color: #d9381e; } .panel p { margin: .3em 0 .5em; font-size: .9em; line-height: 1.4; }
+  .row { display: flex; gap: 6px; flex-wrap: wrap; }
+  button { border: none; background: #1d3557; color: #fff; font-weight: 700; padding: .5em .8em; border-radius: 999px; cursor: pointer; font: inherit; font-size: .85em; }
+  #loading { position: fixed; inset: 0; display: grid; place-items: center; font-weight: 800; color: #1d3557; background: #fffaf0; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="panel">
+  <h1>道 Michi — aperçu du nouveau style</h1>
+  <p>Personnages articulés en costumes d'époque (Jōmon, Himiko, Heian, samouraï, Edo, Meiji, aujourd'hui), toits courbes, pins japonais, cèdres, cerisiers, bambous, lanternes de pierre et jizō. Glisse pour tourner, molette pour zoomer.</p>
+  <div class="row"><button data-view="people">Les personnages</button><button data-view="village">Le village</button><button data-view="temple">Vue large</button><button data-view="auto">Rotation auto</button></div>
+</div>
+<div id="loading">Chargement de l'aperçu…</div>
+<script type="module" src="js/preview.js"></script>
+</body>
+</html>

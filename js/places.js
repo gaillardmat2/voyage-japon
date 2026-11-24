@@ -203,7 +203,7 @@ export const ERAS = [
           { t: "talk", npc: "daiku", say: ["Merci ! Les tuiles de terre cuite sont arrivées au Japon avec le bouddhisme."] }
         ] }
     ],
-    decor: { sakura: 18, pine: 16, lantern: 8, flower: 18 }
+    decor: { sakura: 18, pine: 16, lantern: 8, flower: 18 , jizo: 4 }
   },
   {
     id: "nara", name: "Nara (Heijō-kyō)", region: "Nara", lat: 34.69, lon: 135.84,
@@ -236,7 +236,7 @@ export const ERAS = [
         intro: ["Tu veux nourrir les cerfs ? Donne le biscuit uniquement quand un cerf salue !"],
         steps: [{ t: "game", npc: "shika", say: ["C'est parti !"] }, { t: "talk", npc: "shika", say: ["Bravo ! Les cerfs de Nara sont protégés comme « trésor naturel national »."] }] }
     ],
-    decor: { sakura: 16, pine: 10, lantern: 12 }, gate: true
+    decor: { sakura: 16, pine: 10, lantern: 12 , jizo: 4 }, gate: true
   }
   ]
 },
@@ -277,7 +277,7 @@ export const ERAS = [
         intro: ["Les jeunes nobles jouent au kemari : il faut garder une balle en cuir en l'air, avec les pieds, le plus longtemps possible.", "Montre-nous ton talent !"],
         steps: [{ t: "game", npc: "sei", game: "kemari", say: ["Tape la balle juste avant qu'elle ne touche le sol !"] }, { t: "talk", npc: "sei", say: ["Charmant ! Je l'ajouterai à ma liste des « choses élégantes »."] }] }
     ],
-    decor: { sakura: 20, pine: 8, lantern: 10 }
+    decor: { sakura: 20, pine: 8, lantern: 10 , jizo: 3 }
   },
   {
     id: "uji", name: "Uji", region: "au sud de Kyoto", lat: 34.89, lon: 135.81,
@@ -308,7 +308,7 @@ export const ERAS = [
         intro: ["J'ai prêté mes rouleaux du Genji à des promeneurs… Ils les ont laissés près du pont. Tu me rapportes les 3 rouleaux ?"],
         steps: [{ t: "collect", what: "Rouleau du Genji", icon: "📜", n: 3, near: [-6, 14], r: 12 }, { t: "talk", npc: "kaoru", say: ["Merci ! Les rouleaux illustrés du Genji du XIIe siècle sont des trésors nationaux."] }] }
     ],
-    decor: { sakura: 16, pine: 14, bamboo: 14, lantern: 6 }
+    decor: { sakura: 16, pine: 14, bamboo: 14, lantern: 6 , jizo: 3 }
   },
   {
     id: "dannoura", name: "Dan-no-ura", region: "détroit de Shimonoseki", lat: 33.96, lon: 130.96,
@@ -379,7 +379,7 @@ export const ERAS = [
         intro: ["Le Grand Bouddha a peut-être été fondu avec des pièces de monnaie chinoises, très utilisées chez nous. Rapporte 4 pièces pour l'entretien de la statue."],
         steps: [{ t: "collect", what: "Pièce de bronze", icon: "🟡", n: 4, near: [-30, -10], r: 16 }, { t: "talk", npc: "masako", say: ["Merci ! Au Japon, on utilise beaucoup de pièces importées de Chine à cette époque."] }] }
     ],
-    decor: { maple: 26, pine: 18, bamboo: 12, rock: 10 }
+    decor: { maple: 26, pine: 18, bamboo: 12, rock: 10 , jizo: 5 }
   },
   {
     id: "hakata", name: "Baie de Hakata", region: "Fukuoka, Kyūshū", lat: 33.6, lon: 130.4,
@@ -441,7 +441,7 @@ export const ERAS = [
         intro: ["J'ai perdu mes 3 dents de râteau dans la forêt d'érables. Sans elles, impossible de ratisser le jardin !"],
         steps: [{ t: "collect", what: "Dent de râteau", icon: "🌲", n: 3, near: [-36, 10], r: 14 }, { t: "talk", npc: "zenmonk", say: ["Merci ! Les lignes du gravier représentent l'eau, et les rochers des îles… ou des montagnes."] }] }
     ],
-    decor: { maple: 34, pine: 14, bamboo: 16, rock: 10, lantern: 6 }, gate: true
+    decor: { maple: 34, pine: 14, bamboo: 16, rock: 10, lantern: 6 , jizo: 5 }, gate: true
   }
   ]
 },
@@ -511,7 +511,7 @@ export const ERAS = [
         intro: ["On raconte qu'il manque des assiettes près du puits… et qu'un fantôme les cherche ! Retrouve les 3 assiettes, si tu oses."],
         steps: [{ t: "collect", what: "Assiette", icon: "🍽️", n: 3, near: [34, -24], r: 12 }, { t: "talk", npc: "messager", say: ["Brrr… Tu les as trouvées ! Cette histoire a inspiré des pièces de théâtre et même des films d'horreur."] }] }
     ],
-    decor: { sakura: 18, pine: 14, machiya: 12, lantern: 6 }
+    decor: { sakura: 18, pine: 14, machiya: 12, lantern: 6 , jizo: 3 }
   },
   {
     id: "sekigahara", name: "Sekigahara", region: "Gifu", lat: 35.36, lon: 136.47,
@@ -583,7 +583,7 @@ export const ERAS = [
         intro: ["Mes cadeaux pour le shogun sont tombés du palanquin : une longue-vue, un globe et une horloge. Tu les retrouves ?"],
         steps: [{ t: "collect", what: "Cadeau hollandais", icon: "🔭", n: 3, near: [20, 0], r: 22 }, { t: "talk", npc: "kapitan", say: ["Merci ! Grâce à nos livres, des savants japonais étudient la médecine occidentale : c'est le « rangaku »."] }] }
     ],
-    decor: { pine: 12, machiya: 30, lantern: 14 }
+    decor: { pine: 12, machiya: 30, lantern: 14 , jizo: 4 }
   },
   {
     id: "hakone", name: "Hakone, sur le Tōkaidō", region: "entre Edo et Kyoto", lat: 35.23, lon: 139.02,
@@ -614,7 +614,7 @@ export const ERAS = [
         intro: ["Le vent a emporté mes 3 tanzaku, ces bandes de papier où j'écris mes haïkus. Tu les retrouves ?"],
         steps: [{ t: "collect", what: "Tanzaku", icon: "📃", n: 3, near: [36, 40], r: 14 }, { t: "talk", npc: "basho", say: ["Merci ! Mon carnet de voyage « La Sente étroite du Bout-du-Monde » raconte mon voyage vers le nord."] }] }
     ],
-    decor: { cedar: 30, pine: 18, rock: 12, flower: 10 }
+    decor: { cedar: 30, pine: 18, rock: 12, flower: 10 , jizo: 6 }
   },
   {
     id: "uraga", name: "Uraga", region: "entrée de la baie d'Edo", lat: 35.24, lon: 139.72,
@@ -685,7 +685,7 @@ export const ERAS = [
         intro: ["Le vent a éteint plusieurs lampes ! Va allumer les 4 becs de gaz éteints de la rue."],
         steps: [{ t: "collect", what: "Bec de gaz allumé", icon: "💡", n: 4, near: [-20, 0], r: 26 }, { t: "talk", npc: "allumeur", say: ["Merci ! Yokohama brille comme une ville d'Europe."] }] }
     ],
-    decor: { sakura: 14, lamp: 14, house: 14 }
+    decor: { sakura: 14, lamp: 14, house: 14 , pole: 10 }
   },
   {
     id: "hiroshima", name: "Hiroshima", region: "Hiroshima", lat: 34.39, lon: 132.45,
@@ -717,7 +717,7 @@ export const ERAS = [
         intro: ["Je dois vérifier les plaques des arbres survivants. Repère les 3 plaques vertes près de la rivière."],
         steps: [{ t: "collect", what: "Plaque d'arbre survivant", icon: "🌳", n: 3, near: [10, 10], r: 26 }, { t: "talk", npc: "jardinier", say: ["Merci. Ces arbres sont la preuve que la vie revient, même après le pire."] }] }
     ],
-    decor: { sakura: 16, pine: 10, lamp: 8, house: 8 }
+    decor: { sakura: 16, pine: 10, lamp: 8, house: 8 , pole: 10 }
   },
   {
     id: "tokyo64", name: "Tokyo 1964", region: "Tokyo", lat: 35.68, lon: 139.72,
@@ -748,7 +748,7 @@ export const ERAS = [
         intro: ["Avant le départ, il faut vérifier 3 boîtiers sur la voie. Tu m'aides ?"],
         steps: [{ t: "collect", what: "Boîtier vérifié", icon: "✅", n: 3, near: [30, -20], r: 16 }, { t: "talk", npc: "ingenieur", say: ["Parfait. La ponctualité moyenne du Shinkansen se compte en secondes de retard !"] }] }
     ],
-    decor: { sakura: 12, lamp: 14, house: 22 }, gate: true
+    decor: { sakura: 12, lamp: 14, house: 22 , pole: 14 }, gate: true
   }
   ]
 },
@@ -787,7 +787,7 @@ export const ERAS = [
         intro: ["BATTERIE FAIBLE. Trouve 3 piles dans les rues. BIP."],
         steps: [{ t: "collect", what: "Pile", icon: "🔋", n: 3, near: [-20, -20], r: 18 }, { t: "talk", npc: "pepo", say: ["BATTERIE PLEINE. MERCI, HUMAIN. BIP BOUP !"] }] }
     ],
-    decor: { skyscraper: 26, lamp: 18, sakura: 6 }
+    decor: { skyscraper: 26, lamp: 18, sakura: 6 , vending: 12, pole: 10 }
   },
   {
     id: "rikuzen", name: "Rikuzentakata", region: "Iwate, Tōhoku", lat: 39.02, lon: 141.63,
@@ -818,7 +818,7 @@ export const ERAS = [
         intro: ["La tempête a détaché 3 bouées de mes cordes à huîtres. Tu peux les ramasser sur la plage ?"],
         steps: [{ t: "collect", what: "Bouée", icon: "⚪", n: 3, near: [28, 0], r: 14 }, { t: "talk", npc: "ostreiculteur", say: ["Merci ! L'entraide entre la France et le Japon, c'est une belle histoire de mer."] }] }
     ],
-    decor: { pine: 22, rock: 12, house: 10, flower: 14 }
+    decor: { pine: 22, rock: 12, house: 10, flower: 14 , pole: 8 }
   },
   {
     id: "expo", name: "Osaka, Expo 2025", region: "île de Yumeshima", lat: 34.65, lon: 135.39,
@@ -849,7 +849,7 @@ export const ERAS = [
         intro: ["J'ai perdu les 3 pages de mon carnet de tampons ! Tu les as vues ?"],
         steps: [{ t: "collect", what: "Page de carnet", icon: "📒", n: 3, near: [-30, -20], r: 16 }, { t: "talk", npc: "visiteuse", say: ["Merci ! Collectionner les tampons, les « eki stamps », est une vraie passion au Japon."] }] }
     ],
-    decor: { sakura: 10, lamp: 16, flower: 20 }, gate: true, final: true
+    decor: { sakura: 10, lamp: 16, flower: 20 , vending: 6 }, gate: true, final: true
   }
   ]
 }

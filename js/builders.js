@@ -44,11 +44,33 @@ export function S(o, x, y = x, z = x) { o.scale.set(x, y, z); return o; }
 export function R(o, x = 0, y = 0, z = 0) { o.rotation.set(x, y, z); return o; }
 export function G(...kids) { const g = new THREE.Group(); kids.forEach(k => g.add(k)); return g; }
 
-// Toit en pyramide (croupe) : origine en bas, taille w × d, hauteur h
+// Toit japonais à croupe, avec courbure (sori) et coins relevés : origine en bas, taille w × d, hauteur h
+const roofGeoCache = new Map();
+function roofGeo(rl, alongZ) {
+  const key = rl.toFixed(2) + (alongZ ? 'z' : 'x'); if (roofGeoCache.has(key)) return roofGeoCache.get(key);
+  const g = new THREE.PlaneGeometry(1, 1, 28, 28); g.rotateX(-Math.PI / 2);
+  const p = g.attributes.position;
+  for (let i = 0; i < p.count; i++) {
+    let x = p.getX(i), z = p.getZ(i); if (alongZ) [x, z] = [z, x];
+    const tx = Math.max(0, Math.abs(x) - rl) / (0.5 - rl + 1e-6), tz = Math.abs(z) / 0.5, t = Math.min(1, Math.max(tx, tz));
+    let y = Math.pow(1 - t, 1.55);
+    y += 0.1 * Math.pow(t, 7);
+    y += 0.16 * Math.pow(Math.min(1, Math.abs(x) / 0.5) * tz, 5);
+    p.setY(i, y);
+  }
+  g.computeVertexNormals();
+  roofGeoCache.set(key, g); return g;
+}
 export function roof(w, d, h, c) {
-  const m = cone(Math.SQRT1_2, 1, c, 4);
-  m.rotation.y = Math.PI / 4; m.position.y = 0.5;
-  const g = G(m); g.scale.set(w, h, d); return g;
+  const alongZ = d > w, a = Math.max(w, d), b = Math.min(w, d);
+  const rl = Math.max(0.02, 0.5 - 0.5 * b / a) * 0.9;
+  const m = mk(roofGeo(rl, alongZ), c, { side: THREE.DoubleSide });
+  const g = G(m); g.scale.set(w, h, d);
+  // faîtage
+  const ridgeLen = Math.max(0.04, rl * 2);
+  const ridge = new THREE.Mesh(new THREE.BoxGeometry(alongZ ? 0.06 : ridgeLen + 0.04, 0.05, alongZ ? ridgeLen + 0.04 : 0.06), M(0x2b2b2b));
+  ridge.position.y = 1.0; g.add(ridge);
+  return g;
 }
 // Toit à deux pans (pignon) : faîtage selon z
 export function gable(w, d, h, c) {
@@ -1063,7 +1085,11 @@ Object.assign(BUILD, {
 });
 
 // Décors supplémentaires
-DECOR.chestnut = l => DECOR.maple(l.map(o => ({ ...o, chest: true }))).map((m, i) => { if (i === 1) { m.material = M(0xffffff, { flatShading: true, map: T('grain') }); for (let k = 0; k < l.length; k++) m.setColorAt(k, new THREE.Color([0x6a994e, 0x588157, 0x7fb069][k % 3])); } return m; });
+DECOR.chestnut = l => instM([
+  { geo: new THREE.CylinderGeometry(0.25, 0.4, 3, 7), color: 0x4a3426, m: L4(0, 1.5, 0) },
+  { geo: blob(1, 1), colors: [0x6a994e, 0x588157, 0x7fb069], m: L4(0.5, 3.8, 0, 0, 0, 0, 1.8, 1.2, 1.6), o: { flatShading: true } },
+  { geo: blob(1, 1), colors: [0x588157, 0x6a994e], k: 1, m: L4(-0.6, 3.5, 0.3, 0, 0, 0, 1.5, 1.1, 1.4), o: { flatShading: true } },
+], l);
 DECOR.cedar = l => inst([
   { geo: new THREE.CylinderGeometry(0.35, 0.55, 5, 7), color: 0x5e3b2a, y: 2.5 },
   { geo: new THREE.ConeGeometry(1.8, 8, 8), color: 0xffffff, y: 8, colors: [0x1b4332, 0x2d6a4f, 0x24493d] },
@@ -1071,4 +1097,111 @@ DECOR.cedar = l => inst([
 DECOR.banner = l => inst([
   { geo: new THREE.CylinderGeometry(0.05, 0.05, 5, 5), color: 0x5d3a24, y: 2.5 },
   { geo: new THREE.BoxGeometry(0.05, 2.6, 0.9), color: 0xffffff, y: 3.4, dz: 0.5, colors: [0x6a040f, 0xf8f9fa, 0x1d3557, 0xffb703, 0x111111] },
+], l);
+
+// ───────── Végétation et petits décors japonais (instanciés, plus détaillés)
+function L4(x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0, sx = 1, sy = sx, sz = sx) {
+  return new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, ry, rz)), new THREE.Vector3(sx, sy, sz));
+}
+function instM(parts, list) {
+  const out = [], tm = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), pos = new THREE.Vector3(), sc = new THREE.Vector3(), mm = new THREE.Matrix4();
+  for (const pr of parts) {
+    const mat = pr.basic ? new THREE.MeshBasicMaterial({ color: pr.color }) : M(pr.colors ? 0xffffff : pr.color, { ...(pr.o || {}) });
+    const im = new THREE.InstancedMesh(pr.geo, mat, list.length);
+    im.castShadow = pr.shadow !== false; im.receiveShadow = true;
+    list.forEach((it, i) => {
+      e.set(0, it.rot || 0, 0); q.setFromEuler(e); pos.set(it.x, it.y || 0, it.z); sc.setScalar(it.s || 1);
+      tm.compose(pos, q, sc); mm.multiplyMatrices(tm, pr.m || L4()); im.setMatrixAt(i, mm);
+      if (pr.colors) im.setColorAt(i, new THREE.Color(pr.colors[(i * 7 + (pr.k || 0)) % pr.colors.length]));
+    });
+    out.push(im);
+  }
+  return out;
+}
+const blob = (r, d = 1) => new THREE.IcosahedronGeometry(r, d);
+// Pin noir japonais (kuromatsu) : tronc tordu et plateaux de feuillage
+DECOR.pine = l => instM([
+  { geo: new THREE.CylinderGeometry(0.22, 0.38, 3.2, 7), color: 0x4a3426, m: L4(0.25, 1.5, 0, 0, 0, -0.18) },
+  { geo: new THREE.CylinderGeometry(0.14, 0.22, 2.6, 6), color: 0x4a3426, m: L4(0.9, 3.9, 0.1, 0.1, 0, -0.55) },
+  { geo: new THREE.CylinderGeometry(0.08, 0.14, 2.2, 6), color: 0x4a3426, m: L4(-0.6, 3.6, -0.2, -0.2, 0, 0.9) },
+  { geo: blob(1, 1), colors: [0x2d5a3d, 0x1f4a33, 0x3a6b45], m: L4(1.9, 5.0, 0.2, 0, 0, 0, 1.9, 0.55, 1.5), o: { flatShading: true } },
+  { geo: blob(1, 1), colors: [0x1f4a33, 0x2d5a3d, 0x335f3e], k: 1, m: L4(-1.5, 4.3, -0.3, 0, 0.5, 0, 1.4, 0.45, 1.2), o: { flatShading: true } },
+  { geo: blob(1, 1), colors: [0x2d5a3d, 0x264d36], k: 2, m: L4(0.3, 6.0, 0, 0, 0.3, 0, 1.5, 0.5, 1.3), o: { flatShading: true } },
+], l);
+// Cèdre (sugi) : tronc droit, feuillage conique en étages
+DECOR.cedar = l => instM([
+  { geo: new THREE.CylinderGeometry(0.3, 0.55, 10, 8), color: 0x5e3b2a, m: L4(0, 5, 0) },
+  { geo: new THREE.ConeGeometry(2.2, 5, 9), colors: [0x1b4332, 0x24493d, 0x2d6a4f], m: L4(0, 6.5, 0) },
+  { geo: new THREE.ConeGeometry(1.8, 4.5, 9), colors: [0x24493d, 0x1b4332], k: 1, m: L4(0, 9.3, 0) },
+  { geo: new THREE.ConeGeometry(1.2, 4, 9), colors: [0x2d6a4f, 0x1b4332], k: 2, m: L4(0, 12, 0) },
+], l);
+// Cerisier en fleurs : branches étalées, gros nuages de fleurs, pétales au sol
+DECOR.sakura = l => instM([
+  { geo: new THREE.CylinderGeometry(0.2, 0.36, 2.4, 7), color: 0x4a3030, m: L4(0, 1.2, 0) },
+  { geo: new THREE.CylinderGeometry(0.08, 0.16, 2.4, 6), color: 0x4a3030, m: L4(0.8, 2.9, 0, 0, 0, -0.8) },
+  { geo: new THREE.CylinderGeometry(0.08, 0.16, 2.2, 6), color: 0x4a3030, m: L4(-0.7, 2.8, 0.3, 0.3, 0, 0.8) },
+  { geo: blob(1, 2), colors: [0xffc8dd, 0xffafcc, 0xfbcfe8], m: L4(1.6, 3.9, 0, 0, 0, 0, 1.6, 1.1, 1.5), o: { flatShading: true } },
+  { geo: blob(1, 2), colors: [0xffafcc, 0xffd6e5], k: 1, m: L4(-1.4, 3.7, 0.5, 0, 0, 0, 1.5, 1, 1.4), o: { flatShading: true } },
+  { geo: blob(1, 2), colors: [0xfbcfe8, 0xffc8dd], k: 2, m: L4(0.1, 4.5, -0.4, 0, 0, 0, 1.6, 1.1, 1.5), o: { flatShading: true } },
+  { geo: new THREE.CircleGeometry(2.6, 16), color: 0xffc8dd, shadow: false, m: L4(0, 0.06, 0, -Math.PI / 2) },
+], l);
+// Érable (momiji) : petites touffes rouges et orangées
+DECOR.maple = l => instM([
+  { geo: new THREE.CylinderGeometry(0.16, 0.28, 2.6, 7), color: 0x4a3426, m: L4(0, 1.3, 0) },
+  { geo: new THREE.CylinderGeometry(0.06, 0.12, 2, 6), color: 0x4a3426, m: L4(0.6, 2.8, 0, 0, 0, -0.7) },
+  { geo: blob(1, 1), colors: [0xd62828, 0xe85d04, 0xf48c06, 0xc1121f], m: L4(0.9, 3.4, 0, 0, 0, 0, 1.4, 0.9, 1.3), o: { flatShading: true } },
+  { geo: blob(1, 1), colors: [0xe85d04, 0xd62828, 0xffba08], k: 1, m: L4(-0.7, 3.2, 0.3, 0, 0, 0, 1.3, 0.85, 1.2), o: { flatShading: true } },
+  { geo: blob(1, 1), colors: [0xc1121f, 0xf48c06], k: 2, m: L4(0, 4.1, -0.2, 0, 0, 0, 1.2, 0.8, 1.1), o: { flatShading: true } },
+], l);
+// Bambouseraie : touffe de tiges avec nœuds et feuillage
+DECOR.bamboo = l => instM([
+  ...[[0, 0, 7.5], [0.5, 0.3, 6.8], [-0.4, 0.45, 7.2], [0.3, -0.5, 6.2], [-0.55, -0.3, 6.6], [0.85, -0.1, 5.8], [-0.1, 0.85, 6.4]].map(([x, z, h], k) => ({ geo: new THREE.CylinderGeometry(0.06, 0.07, h, 6), color: [0x7cb518, 0x6a994e, 0x90a955][k % 3], m: L4(x, h / 2, z, (x) * 0.03, 0, z * 0.03) })),
+  { geo: blob(1, 1), colors: [0x55a630, 0x6a994e, 0x80b918], m: L4(0.1, 6.6, 0.1, 0, 0, 0, 1.3, 1.1, 1.3), o: { flatShading: true, transparent: false } },
+  { geo: blob(1, 1), colors: [0x6a994e, 0x55a630], k: 1, m: L4(0.4, 5.6, -0.4, 0, 0, 0, 0.9, 0.8, 0.9), o: { flatShading: true } },
+], l);
+// Azalées (tsutsuji)
+DECOR.flower = l => instM([
+  { geo: blob(0.55, 1), colors: [0x40916c, 0x2d6a4f], m: L4(0, 0.35, 0, 0, 0, 0, 1.3, 0.8, 1.1), o: { flatShading: true } },
+  { geo: blob(0.5, 1), colors: [0xff4d8d, 0xe0218a, 0xffffff, 0xf72585, 0xff85a1], m: L4(0.05, 0.62, 0, 0, 0, 0, 1.15, 0.45, 0.95), o: { flatShading: true } },
+], l);
+// Lanterne de pierre (tōrō)
+DECOR.lantern = l => instM([
+  { geo: new THREE.CylinderGeometry(0.42, 0.5, 0.3, 6), color: 0x9a968e, m: L4(0, 0.15, 0) },
+  { geo: new THREE.CylinderGeometry(0.13, 0.16, 1.1, 8), color: 0x9a968e, m: L4(0, 0.85, 0) },
+  { geo: new THREE.CylinderGeometry(0.38, 0.3, 0.18, 6), color: 0x9a968e, m: L4(0, 1.48, 0) },
+  { geo: new THREE.CylinderGeometry(0.28, 0.28, 0.42, 6), color: 0xfff1c1, m: L4(0, 1.78, 0), o: { emissive: 0xffb703, emissiveIntensity: 0.9 } },
+  { geo: new THREE.ConeGeometry(0.62, 0.42, 6), color: 0x8a867e, m: L4(0, 2.2, 0) },
+  { geo: new THREE.SphereGeometry(0.1, 8, 6), color: 0x8a867e, m: L4(0, 2.48, 0) },
+], l);
+// Statues jizō avec bavoir rouge
+DECOR.jizo = l => instM([
+  { geo: new THREE.CylinderGeometry(0.22, 0.28, 0.7, 10), color: 0x9a968e, m: L4(0, 0.35, 0) },
+  { geo: new THREE.SphereGeometry(0.17, 12, 10), color: 0x9a968e, m: L4(0, 0.85, 0) },
+  { geo: new THREE.ConeGeometry(0.27, 0.3, 10, 1, true), color: 0xd62828, m: L4(0, 0.62, 0.02) },
+], l);
+// Poteaux électriques (époques modernes)
+DECOR.pole = l => instM([
+  { geo: new THREE.CylinderGeometry(0.12, 0.16, 9, 8), color: 0x9e9e9e, m: L4(0, 4.5, 0) },
+  { geo: new THREE.BoxGeometry(1.6, 0.1, 0.1), color: 0x6c757d, m: L4(0, 8.2, 0) },
+  { geo: new THREE.CylinderGeometry(0.18, 0.18, 0.5, 8), color: 0x495057, m: L4(0.35, 7.3, 0.1) },
+], l);
+// Distributeurs automatiques lumineux
+DECOR.vending = l => instM([
+  { geo: new THREE.BoxGeometry(1, 1.9, 0.8), colors: [0xd62828, 0x1d4ed8, 0xf8f9fa, 0x2b9348], m: L4(0, 0.95, 0) },
+  { geo: new THREE.BoxGeometry(0.8, 0.9, 0.02), color: 0xffffff, m: L4(0, 1.25, 0.41), basic: true },
+], l);
+// Maison traditionnelle (machiya) : murs de bois, toit de tuiles courbé
+const roofUnit = roofGeo(0.15, false);
+DECOR.machiya = l => instM([
+  { geo: new THREE.BoxGeometry(5, 3.2, 4), colors: [0x8d5a3b, 0x7a4b30, 0xa47148], m: L4(0, 1.6, 0) },
+  { geo: new THREE.BoxGeometry(5.05, 1.2, 4.05), color: 0xf3efe6, m: L4(0, 2.6, 0) },
+  { geo: roofUnit, color: 0x3d4f5c, m: L4(0, 3.2, 0, 0, 0, 0, 6.4, 1.5, 5.4), o: { side: THREE.DoubleSide } },
+  { geo: new THREE.BoxGeometry(3.2, 1.4, 0.06), colors: [0xf8f1e5, 0xfff8e7], m: L4(0, 1.3, 2.03), o: { emissive: 0xffd8a8, emissiveIntensity: 0.25 } },
+  { geo: new THREE.BoxGeometry(1.6, 0.9, 0.04), colors: [0x1d3557, 0x9d0208, 0x2a9d8f, 0x6a4c93], m: L4(1.2, 2.3, 2.08) },
+], l);
+DECOR.house = l => instM([
+  { geo: new THREE.BoxGeometry(5, 4, 5), colors: [0xf1faee, 0xffe8d6, 0xe9ecef, 0xd8e2dc], m: L4(0, 2, 0) },
+  { geo: roofUnit, colors: [0x457b9d, 0x6d597a, 0x3d4f5c, 0x9d0208], m: L4(0, 4, 0, 0, 0, 0, 6.2, 1.8, 6.2), o: { side: THREE.DoubleSide } },
+  { geo: new THREE.BoxGeometry(1.4, 1.2, 0.05), color: 0xbde0fe, m: L4(-1, 2.6, 2.52), o: { emissive: 0xffe8a3, emissiveIntensity: 0.3 } },
+  { geo: new THREE.BoxGeometry(1, 2, 0.05), color: 0x6d4c41, m: L4(1.2, 1, 2.52) },
 ], l);

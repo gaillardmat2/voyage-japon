@@ -90,6 +90,18 @@ const MAKERS = {
     for (let i = 0; i < 500; i++) { const k = 90 + r() * 120; x.fillStyle = `rgba(${k},${k},${k},.5)`; x.beginPath(); x.arc(r() * s, r() * s, 0.8 + r() * 2.2, 0, 7); x.fill(); }
     return tex(c, 1);
   },
+  groundDetail() {
+    const s = 512, f = noiseField(s, 121, 6), r = rand(122);
+    const c = fromField(s, f, v => { const k = 185 + v * 70; return [k, k, k]; });
+    const x = c.getContext('2d');
+    for (let i = 0; i < 14000; i++) { const k = r(); x.strokeStyle = k > 0.5 ? 'rgba(255,255,255,.22)' : 'rgba(0,0,0,.18)'; x.lineWidth = 1; x.beginPath(); const xx = r() * s, y = r() * s; x.moveTo(xx, y); x.lineTo(xx + (r() - 0.5) * 3, y - 3 - r() * 6); x.stroke(); }
+    return tex(c, 1);
+  },
+  cloud() {
+    const s = 256, [c, x] = canvas(s);
+    for (let i = 0; i < 14; i++) { const cx = 50 + Math.random() * 156, cy = 110 + Math.random() * 50, r = 30 + Math.random() * 45; const g = x.createRadialGradient(cx, cy, 0, cx, cy, r); g.addColorStop(0, 'rgba(255,255,255,.55)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, s, s); }
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+  },
   waterNormal() {
     const s = 256, f = noiseField(s, 91, 4), [c, x] = canvas(s), img = x.createImageData(s, s);
     for (let yy = 0; yy < s; yy++) for (let xx = 0; xx < s; xx++) {
