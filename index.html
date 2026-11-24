@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#d9381e">
+<title>Michi — Le voyage du pèlerin du temps</title>
+<meta name="description" content="Un jeu 3D d'exploration qui retrace toute l'histoire du Japon, de l'époque Jōmon à l'ère Reiwa.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛩️</text></svg>">
+<link rel="stylesheet" href="style.css">
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/" } }
+</script>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<!-- HUD -->
+<div id="hud">
+  <div id="era-card">
+    <div id="era-name">Jōmon</div>
+    <div id="era-dates"></div>
+    <div id="era-progress"></div>
+  </div>
+  <div id="timeline"></div>
+  <div id="tools">
+    <span id="total" title="Découvertes au total">0/0</span>
+    <button id="btn-journal" title="Carnet de voyage (J)">📜</button>
+    <button id="btn-hint" title="Demander à Kiko (H)">🦊</button>
+    <button id="btn-music" title="Musique">🔈</button>
+    <button id="btn-quality" title="Qualité graphique">HD</button>
+    <button id="btn-full" title="Plein écran">⛶</button>
+  </div>
+</div>
+<button id="btn-act"></button>
+<div id="joystick"><div id="knob"></div></div>
+
+<div id="banner"><div id="banner-num"></div><div id="banner-name"></div><div id="banner-dates"></div></div>
+<div id="toast"></div>
+
+<!-- Dialogue -->
+<div id="dialog">
+  <div class="dlg-head"><span id="dlg-icon">💬</span><span id="dlg-speaker"></span><span id="dlg-count"></span></div>
+  <p id="dlg-text"></p>
+  <div id="dlg-options"></div>
+  <button id="dlg-next">Suivant ▸</button>
+</div>
+
+<!-- Carnet -->
+<div id="journal" class="modal">
+  <div class="sheet">
+    <header><h2>📜 Carnet du pèlerin</h2><button id="journal-close">✕</button></header>
+    <div id="journal-body"></div>
+  </div>
+</div>
+
+<!-- Certificat -->
+<div id="certificate" class="modal">
+  <div class="sheet cert">
+    <div class="cert-torii">⛩️</div>
+    <h2>Certificat du Pèlerin du Temps</h2>
+    <p>Ce certificat est décerné à</p>
+    <div id="cert-name"></div>
+    <p>qui a parcouru tout le chemin de l'histoire du Japon, de l'époque Jōmon à l'ère Reiwa, et répondu aux neuf gardiens du torii.</p>
+    <div id="cert-stamps"></div>
+    <p class="muted">Le <span id="cert-date"></span> — signé : Kiko 🦊</p>
+    <div class="row"><button id="cert-close" class="big">Continuer à explorer</button><button id="cert-restart" class="ghost">Recommencer</button></div>
+  </div>
+</div>
+
+<!-- Écran titre -->
+<div id="title">
+  <div class="sun"></div>
+  <div class="title-box">
+    <div class="kanji">道</div>
+    <h1>Michi</h1>
+    <h2>Le voyage du pèlerin du temps</h2>
+    <p class="lead">Parcours 16 000 ans d'histoire du Japon en 3D : visite les monuments, parle aux personnages célèbres et réponds aux gardiens des torii.</p>
+    <div id="loading">Chargement du monde…</div>
+    <div id="title-buttons" style="display:none">
+      <input id="player-name" maxlength="24" placeholder="Ton prénom de pèlerin" autocomplete="off">
+      <div class="row">
+        <button id="btn-continue" class="big" style="display:none">Continuer ▸</button>
+        <button id="btn-new" class="big">Commencer le voyage ▸</button>
+      </div>
+    </div>
+    <div class="help">
+      <span><kbd>Z</kbd><kbd>Q</kbd><kbd>S</kbd><kbd>D</kbd> / flèches : marcher</span>
+      <span><kbd>Maj</kbd> : courir</span>
+      <span><kbd>E</kbd> : parler / découvrir</span>
+      <span>Glisser : tourner la caméra · Molette ou pincer : zoom</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Si le moteur 3D ne se charge pas (connexion coupée…), on l'indique.
+  setTimeout(function () {
+    var l = document.getElementById('loading');
+    if (l && l.style.display !== 'none') l.textContent = "Le chargement est long… Vérifie ta connexion internet puis recharge la page.";
+  }, 15000);
+</script>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: voyage-japon
+    runtime: static
+    buildCommand: echo "Site statique, rien a construire"
+    staticPublishPath: .
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: no-cache
